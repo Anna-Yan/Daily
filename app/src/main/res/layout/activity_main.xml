@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+
+
+
+    <RelativeLayout
+        android:id="@+id/blueButtonsLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <include
+            android:id="@+id/main_toolbar"
+            layout="@layout/main_toolbar" />
+
+        <Button
+            android:id="@+id/updateTaskButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/main_toolbar"
+            android:background="#0088ff"
+            android:elevation="0dp"
+            android:fontFamily="@font/verdana"
+            android:text="✓Save"
+            android:textAllCaps="false"
+            android:textColor="@android:color/white"
+            android:textSize="24sp" />
+
+        <Button
+            android:id="@+id/addTaskButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/main_toolbar"
+            android:background="#0088ff"
+            android:elevation="0dp"
+            android:fontFamily="@font/verdana"
+            android:text="✓Save"
+            android:textAllCaps="false"
+            android:textColor="@android:color/white"
+            android:textSize="24sp" />
+
+
+        <Button
+            android:id="@+id/updateDealButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/main_toolbar"
+            android:background="#0088ff"
+            android:elevation="0dp"
+            android:fontFamily="@font/verdana"
+            android:text="✓Save"
+            android:textAllCaps="false"
+            android:textColor="@android:color/white"
+            android:textSize="24sp" />
+
+        <Button
+            android:id="@+id/saveDealButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/main_toolbar"
+            android:background="#0088ff"
+            android:elevation="0dp"
+            android:fontFamily="@font/verdana"
+            android:text="✓Save"
+            android:textAllCaps="false"
+            android:textColor="@android:color/white"
+            android:textSize="24sp" />
+
+
+        <Button
+            android:id="@+id/addDealButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/main_toolbar"
+            android:background="@color/colorAccent"
+            android:fontFamily="@font/verdana"
+            android:text="+Deal"
+            android:textAllCaps="false"
+            android:elevation="0dp"
+            android:textColor="@android:color/white"
+            android:textSize="24sp" />
+
+    </RelativeLayout>
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/dealRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/bottomBlueLinLayout"
+        android:layout_below="@+id/blueButtonsLayout"
+        android:background="@color/appBackgroundColor">
+
+
+    </android.support.v7.widget.RecyclerView>
+
+
+
+    <!--InvisibleWhiteLayout-->
+
+    <LinearLayout
+        android:id="@+id/bottomWhiteLinLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:background="@color/bottomLayoutColor"
+        android:focusableInTouchMode="true"
+        android:orientation="horizontal"
+        android:paddingBottom="15dp"
+        android:paddingLeft="30dp"
+        android:paddingRight="15dp"
+        android:paddingTop="15dp"
+        android:visibility="gone">
+
+
+        <EditText
+            android:id="@+id/dealNameEditText"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center|start"
+            android:layout_marginRight="10dp"
+            android:layout_weight="0.4"
+            android:background="@drawable/search_shape"
+            android:ems="10"
+            android:fontFamily="@font/verdana"
+            android:hint="Deal name"
+            android:inputType="textPersonName"
+            android:paddingBottom="10dp"
+            android:paddingLeft="15dp"
+            android:paddingRight="15dp"
+            android:paddingTop="10dp"
+            android:textSize="14sp" />
+
+        <ImageButton
+            android:id="@+id/pathButton"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:background="@color/bottomLayoutColor"
+            android:src="@mipmap/path_icon" />
+
+        <ImageButton
+            android:id="@+id/photoButton"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:background="@color/bottomLayoutColor"
+            android:src="@mipmap/photo_icon" />
+
+        <ImageButton
+            android:id="@+id/voiceButton"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:background="@color/bottomLayoutColor"
+            android:src="@mipmap/voice_icon" />
+    </LinearLayout>
+
+
+    <LinearLayout
+        android:id="@+id/bottomBlueLinLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:background="@color/colorAccent"
+        android:orientation="horizontal"
+        android:paddingBottom="30dp"
+        android:paddingTop="30dp"
+        android:visibility="gone">
+
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center">
+
+            <ImageButton
+                android:id="@+id/editTaskButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:background="@color/colorAccent"
+                android:src="@mipmap/edit_pen" />
+
+            <ImageButton
+                android:id="@+id/editButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:background="@color/colorAccent"
+                android:src="@mipmap/edit_pen" />
+
+        </RelativeLayout>
+
+        <ImageButton
+            android:id="@+id/plusButton"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:layout_weight="1"
+            android:background="@color/colorAccent"
+            android:src="@mipmap/plus_icon" />
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center">
+
+            <ImageButton
+                android:id="@+id/deleteTaskButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/colorAccent"
+                android:src="@mipmap/delete_icon" />
+
+            <ImageButton
+                android:id="@+id/deleteButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/colorAccent"
+                android:src="@mipmap/delete_icon" />
+
+        </RelativeLayout>
+
+    </LinearLayout>
+
+
+
+</RelativeLayout>

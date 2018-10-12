@@ -1,0 +1,18 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@android:color/darker_gray</item>
+        <item name="colorPrimaryDark">@android:color/black</item>
+        <item name="colorAccent">#0088ff</item>
+    </style>
+
+
+    <style name="normalDealStyle">
+        <item name="android:textStyle">bold</item>
+        <item name="android:fontFamily">@font/verdana</item>
+        <item name="android:textColor">@android:color/black</item>
+    </style>
+
+</resources>

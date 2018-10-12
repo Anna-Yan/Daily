@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryDark">#000000</color>
+    <color name="colorAccent">#0088ff</color>
+    <color name="white">#ffffff</color>
+    <color name="appBackgroundColor">#f5f5f5</color>
+    <color name="bottomLayoutColor">#EBEBEB</color>
+    <color name="topLayoutColor">#EBEBEB</color>
+
+    <color name="taskItemColor">#c6c6c6</color>
+    <color name="taskItemDisabledColor">#e3e3e3</color>
+
+
+</resources>

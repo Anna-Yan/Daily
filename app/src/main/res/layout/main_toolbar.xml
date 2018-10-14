@@ -15,10 +15,10 @@
         android:layout_height="match_parent"
         android:layout_marginLeft="30dp"
         android:layout_marginRight="30dp"
+        android:elevation="0dp"
         android:focusableInTouchMode="true"
         android:gravity="center"
         android:orientation="horizontal"
-        android:elevation="0dp"
         android:visibility="visible">
 
 
@@ -30,18 +30,19 @@
             android:background="@drawable/search_shape">
 
 
-
             <EditText
                 android:id="@+id/toolbarSearchEditText"
                 android:layout_width="match_parent"
-                android:layout_height="35dp"
+                android:layout_height="30dp"
                 android:background="@null"
+                android:focusableInTouchMode="true"
                 android:fontFamily="@font/verdana"
                 android:hint="Search deal..."
                 android:inputType="text"
                 android:paddingLeft="15dp"
                 android:textColor="@android:color/black"
                 android:textColorHighlight="@android:color/black"
+                android:textColorHint="@color/taskItemColor"
                 android:textColorLink="@android:color/black"
                 android:textSize="14sp" />
 

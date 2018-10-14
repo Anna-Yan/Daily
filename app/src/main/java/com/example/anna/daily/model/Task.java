@@ -5,6 +5,7 @@ public class Task {
     private int deal_id;
     private String taskName;
     private int task_number;
+    private int disabled;
 
 
     public int getDeal_id() {
@@ -31,12 +32,21 @@ public class Task {
         this.task_number = task_number;
     }
 
+    public int getDisabled() {
+        return disabled;
+    }
+
+    public void setDisabled(int disabled) {
+        this.disabled = disabled;
+    }
+
     @Override
     public String toString() {
         return "Task{" +
                 "deal_id=" + deal_id +
                 ", taskName='" + taskName + '\'' +
                 ", task_number=" + task_number +
+                ", disabled=" + disabled +
                 '}';
     }
 }

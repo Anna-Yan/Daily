@@ -17,6 +17,7 @@
         android:textColor="@color/taskItemColor" />
 
     <RelativeLayout
+        android:id="@+id/circleBttnsLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_weight="4">
@@ -37,6 +38,7 @@
             android:layout_centerHorizontal="true"
             android:layout_centerVertical="true"
             android:background="@color/white"
+            android:visibility="visible"
             app:srcCompat="@mipmap/white_circle" />
 
     </RelativeLayout>

@@ -14,7 +14,6 @@ import com.example.anna.daily.model.Task;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.example.anna.daily.MainActivity.base64Image;
 
 /**
  * Created by InnoSoft
@@ -22,7 +21,7 @@ import static com.example.anna.daily.MainActivity.base64Image;
 
 public class DBhelper extends SQLiteOpenHelper {
 
-    public static final int DBVERSION = 2;
+    public static final int DBVERSION = 3;
     public static final String DBNAME = "dailyDB";
 
     //Set up Deal Table
@@ -36,10 +35,11 @@ public class DBhelper extends SQLiteOpenHelper {
     public static final String TASK_NAME = "name";
     public static final String TASK_DEAL_ID = "deal_id";
     public static final String TASK_NUMBER = "roll_number";
+    public static final String TASK_DISABLED = "disabled";
 
     //CREATE TB
     public static String queryCreateDealTable = "CREATE TABLE " + DEAL_TABLE + "(id integer primary key autoincrement, "+ DEAL_NAME +" text, "+ IMAGE_PATH +" text);";
-    public static String queryCreateTaskTable = "CREATE TABLE " + TASK_TABLE + "("+ TASK_NAME +" text, "+ TASK_NUMBER +" integer, "+ TASK_DEAL_ID +" integer);";
+    public static String queryCreateTaskTable = "CREATE TABLE " + TASK_TABLE + "("+ TASK_NAME +" text, "+ TASK_NUMBER +" integer, "+ TASK_DEAL_ID +" integer, "+ TASK_DISABLED+" integer);";
 
     //DROP TB
     static final String DROP_DEAL_TB = "DROP TABLE IF EXISTS dealTB";
@@ -160,11 +160,9 @@ public class DBhelper extends SQLiteOpenHelper {
     public List<Deal> searchByDealName(String dealName){
 
         List<Deal> dealList = new ArrayList<>();
-        db = getReadableDatabase();
-        //String selection = "name LIKE ?";
-        //String selectionArgs[] = {'%'+dealName+'%'};
 
-        String countQuery = "SELECT * FROM "+DEAL_TABLE+" WHERE "+DEAL_NAME+" LIKE "+dealName;
+        String countQuery = "SELECT * FROM "+DEAL_TABLE+" WHERE "+DEAL_NAME+" LIKE '"+dealName+"%'";
+        db = getReadableDatabase();
         Cursor c = db.rawQuery(countQuery, null);
 
        // Cursor c = db.query(DEAL_TABLE, null, selection, selectionArgs, null, null, null);
@@ -174,10 +172,12 @@ public class DBhelper extends SQLiteOpenHelper {
             Deal deal = new Deal();
             deal.setId(c.getInt(0));
             deal.setName(c.getString(1));
+            deal.setImagePath(c.getString(2));
 
             dealList.add(deal);
-            c.close();
+
         }
+        c.close();
         return dealList;
     }
 
@@ -204,6 +204,7 @@ public class DBhelper extends SQLiteOpenHelper {
             cv.put(TASK_NAME, task.getTaskName());
             cv.put(TASK_NUMBER, task.getTask_number());
             cv.put(TASK_DEAL_ID, task.getDeal_id());
+            cv.put(TASK_DISABLED, task.getDisabled());
 
             db = getWritableDatabase();
             long result = db.insert(TASK_TABLE, null, cv);
@@ -218,15 +219,19 @@ public class DBhelper extends SQLiteOpenHelper {
     }
 
     /** UPDATE Task **/
-    public boolean updateTask(String newName, int deal_id, int task_number) {
+    public boolean updateTask(String newName, int deal_id, int task_number, int disable) {
+        db = getReadableDatabase();
+
         try {
             ContentValues cv = new ContentValues();
             cv.put(TASK_NAME, newName);
+            cv.put(TASK_DISABLED, disable);
 
             int result = db.update(TASK_TABLE, cv, TASK_DEAL_ID+" =? and "+ TASK_NUMBER+" =?",new String[]{String.valueOf(deal_id),String.valueOf(task_number)});
             if (result > 0) {
                 return true;
             }
+
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -234,9 +239,11 @@ public class DBhelper extends SQLiteOpenHelper {
     }
 
 
+
+
     /** DELETE Task **/
-    public boolean deleteTask(int deal_id, int task_number)
-    {
+    public boolean deleteTask(int deal_id, int task_number) {
+        db = getReadableDatabase();
         try
         {
             int result = db.delete(TASK_TABLE,TASK_DEAL_ID+" =? and "+ TASK_NUMBER+" =?",new String[]{String.valueOf(deal_id),String.valueOf(task_number)});
@@ -256,6 +263,7 @@ public class DBhelper extends SQLiteOpenHelper {
 
     /** GET ALL Tasks **/
     public List<Task> getAllTasks() {
+
         List<Task> list = new ArrayList<>();
         db = getReadableDatabase();
         Cursor cursor = db.query(TASK_TABLE, null, null, null, null, null, null);
@@ -289,6 +297,7 @@ public class DBhelper extends SQLiteOpenHelper {
             task.setTaskName(cursor.getString(0));
             task.setTask_number(cursor.getInt(1));
             task.setDeal_id(cursor.getInt(2));
+            task.setDisabled(cursor.getInt(3));
 
             Log.d("TaskName column", String.valueOf(cursor.getInt(0)));
             Log.d("TaskNumber column", String.valueOf(cursor.getLong(1)));

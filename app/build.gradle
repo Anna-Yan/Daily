@@ -32,6 +32,4 @@ dependencies {
 
     //expandable layout
     implementation 'com.github.aakira:expandable-layout:1.6.0@aar'
-    implementation 'net.cachapa.expandablelayout:expandablelayout:2.9.2'
-
 }

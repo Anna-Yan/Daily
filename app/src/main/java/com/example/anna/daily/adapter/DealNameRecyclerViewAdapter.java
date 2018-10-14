@@ -5,7 +5,6 @@ import android.animation.AnimatorListenerAdapter;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Typeface;
 import android.support.annotation.NonNull;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.widget.DefaultItemAnimator;
@@ -16,8 +15,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
@@ -26,26 +23,18 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import com.example.anna.daily.DBhelper;
-import com.example.anna.daily.ItemLongClickListener;
+import com.example.anna.daily.ItemClickListener;
 import com.example.anna.daily.R;
 import com.example.anna.daily.model.Deal;
 import com.example.anna.daily.model.Task;
 import com.github.aakira.expandablelayout.ExpandableLinearLayout;
-
-import net.cachapa.expandablelayout.ExpandableLayout;
-
 import java.io.ByteArrayOutputStream;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
-import static android.content.Context.RECEIVER_VISIBLE_TO_INSTANT_APPS;
 import static com.example.anna.daily.MainActivity.base64Image;
 import static com.example.anna.daily.MainActivity.isInserting;
+import static com.example.anna.daily.adapter.TaskRecyclerViewAdapter.task_row_index;
 
 public class DealNameRecyclerViewAdapter extends RecyclerView.Adapter<DealNameRecyclerViewAdapter.ViewHolder> {
 
@@ -70,15 +59,16 @@ public class DealNameRecyclerViewAdapter extends RecyclerView.Adapter<DealNameRe
     private ImageButton plusButton;
     private ImageButton deleteButton;
 
-    private static int row_index = -1;
+    public static int deal_row_index = -1;
     public static DBhelper dBhelper;
+
+
 
     public DealNameRecyclerViewAdapter (Context mContext, List<Deal> dealList) {
 
         this.context = mContext;
         this.dealList = dealList;
         this.dBhelper = new DBhelper(context);
-
     }
 
 
@@ -105,35 +95,75 @@ public class DealNameRecyclerViewAdapter extends RecyclerView.Adapter<DealNameRe
     }
 
     @Override
-    public void onBindViewHolder(@NonNull final DealNameRecyclerViewAdapter.ViewHolder holder, final int position) {
+    public void onBindViewHolder(@NonNull final DealNameRecyclerViewAdapter.ViewHolder holder, int position) {
 
         holder.onBind(dealList.get(position),context);
 
         holder.setIsRecyclable(false);
 
-        //always expand first task
-        ViewGroup.LayoutParams params = holder.dealExpandableLayout.getLayoutParams();
-        params.height = context.getResources().getDimensionPixelSize(R.dimen.task_item_size);
-        holder.dealExpandableLayout.setLayoutParams(params);
-        holder.dealExpandableLayout.expand();
+        //Always show 1 task
+        if(deal_row_index != position) {
+
+            if(deal_row_index == -2){
+                holder.expandTask(position,true);
+                Log.i("hreshtak", "expand Task =" + position);
 
 
-        holder.setItemLongClickListener(new ItemLongClickListener() {
+            }else{
+
+            if (dBhelper.getTasksCountByDealId(dealList.get(position).getId()) > 1) {
+
+                    holder.expandTaskLayout(position, false);
+                    Log.i("hreshtak", "onBindViewHolder,pos=" + position);
+            }
+        }}
+
+
+        holder.setItemClickListener(new ItemClickListener() {
             @Override
             public void onLongClick(View view, int position) {
 
-                row_index = position;
+                deal_row_index = position;
                 notifyDataSetChanged(); //make effect to reyclerView
 
                 //open blue layout, and make visible update button by hiding add and save buttons
                 animateBlueLayout(false);
                 addDealBttn.setVisibility(View.INVISIBLE);
                 saveDealBttn.setVisibility(View.INVISIBLE);
+                updateDealBttn.setVisibility(View.VISIBLE);
+                editButton.setVisibility(View.VISIBLE);
+                deleteButton.setVisibility(View.VISIBLE);
+
+            }
+
+            @Override
+            public void onClick(View view, int position) {
+
+                List<Deal> reversedList = dBhelper.getAllDeals();
+                Collections.reverse(reversedList);
+
+                Deal deal = reversedList.get(position);
+                int deal_id = deal.getId();
+
+                if (holder.isExpanded) {
+
+                    //Expand all tasks
+                    holder.expandTaskLayout(position,true);
+                    //Toast.makeText(context, "expand,"+position, Toast.LENGTH_SHORT).show();
+                }
+                else{
+                    //Always show 1 task
+                    if(dBhelper.getAllTasksByDealID(deal_id).size()>0){
+
+                        holder.expandTaskLayout(position,false);
+                       // Toast.makeText(context, "colapse,"+position, Toast.LENGTH_SHORT).show();
+                    }
+                }
             }
         });
 
         //make bold selected deal
-        if(row_index == position){
+        if(deal_row_index == position){
 
             holder.dealName.setTypeface(ResourcesCompat.getFont(context, R.font.verdanab));
         }
@@ -154,11 +184,11 @@ public class DealNameRecyclerViewAdapter extends RecyclerView.Adapter<DealNameRe
                 showKeyboard();
 
 
-                String dealText = dealList.get(row_index).getName();
+                String dealText = dealList.get(deal_row_index).getName();
 
                 dealNameEditText.setText(dealText);
                 dealNameEditText.setSelection(dealText.length());
-                dealNameEditText.setHint("Deal name");
+                dealNameEditText.setHint("Add deal");
 
 
             }
@@ -170,16 +200,18 @@ public class DealNameRecyclerViewAdapter extends RecyclerView.Adapter<DealNameRe
             @Override
             public void onClick(View v) {
 
+
                 animateBlueLayout(true);
                 showKeyboard();
 
                 //This is for making visible addTaskButton
-                pathButton.setVisibility(View.INVISIBLE);
-                photoButton.setVisibility(View.INVISIBLE);
+                pathButton.setVisibility(View.GONE);
+                photoButton.setVisibility(View.GONE);
                 updateDealBttn.setVisibility(View.INVISIBLE);
+                addTaskBttn.setVisibility(View.VISIBLE);
                 bottomWhiteLinLayout.setVisibility(View.VISIBLE);
 
-                dealNameEditText.setHint("Task name");
+                dealNameEditText.setHint("Add task");
             }
         });
 
@@ -188,9 +220,9 @@ public class DealNameRecyclerViewAdapter extends RecyclerView.Adapter<DealNameRe
             @Override
             public void onClick(View v) {
 
-                deleteDeal(row_index);
+                deleteDeal(deal_row_index);
 
-                row_index = -1; //uncheck bold check
+                deal_row_index = -1; //uncheck bold check
                 notifyDataSetChanged();
 
                 animateBlueLayout(true);
@@ -216,10 +248,10 @@ public class DealNameRecyclerViewAdapter extends RecyclerView.Adapter<DealNameRe
 
                     edittedText = dealNameEditText.getText().toString();
 
-                    updateDeal(row_index, edittedText);
+                    updateDeal(deal_row_index, edittedText);
                 }
 
-                row_index = -1; //uncheck bold
+                deal_row_index = -1; //uncheck bold
                 notifyDataSetChanged();
 
                 addDealBttn.setVisibility(View.VISIBLE);
@@ -236,33 +268,30 @@ public class DealNameRecyclerViewAdapter extends RecyclerView.Adapter<DealNameRe
             public void onClick(View v) {
 
                 animateBlueLayout(true);
+                hideKeyboard();
 
-               // if (!dealNameEditText.getText().toString().matches("")) {
-
-                    holder.bindTask(row_index, dealNameEditText.getText().toString());
-
+                    holder.bindTask(deal_row_index, dealNameEditText.getText().toString());
                     //expand task layout to the height of taskItem size
-                    // holder.expandTaskLayout(true,context);
 
-                    hideKeyboard();
                     dealNameEditText.setText("");
                     addDealBttn.setVisibility(View.VISIBLE);
                     saveDealBttn.setVisibility(View.VISIBLE);
                     updateDealBttn.setVisibility(View.VISIBLE);
+
                     bottomWhiteLinLayout.setVisibility(View.GONE);
                     pathButton.setVisibility(View.VISIBLE);
                     photoButton.setVisibility(View.VISIBLE);
 
                     //For deselect bold text
-                    row_index = -1;
+                    deal_row_index = -2;
+                    task_row_index = -1;
                     notifyDataSetChanged();
 
-
-                // } else {
-               //     Toast.makeText(context, "Please fill the task field", Toast.LENGTH_SHORT).show();
-               // }
             }
         });
+
+
+
 
     }
 
@@ -271,8 +300,6 @@ public class DealNameRecyclerViewAdapter extends RecyclerView.Adapter<DealNameRe
 
         InputMethodManager imm2 = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
         imm2.hideSoftInputFromWindow(dealNameEditText.getWindowToken(), 0);
-
-
     }
 
     public void showKeyboard(){
@@ -324,21 +351,11 @@ public class DealNameRecyclerViewAdapter extends RecyclerView.Adapter<DealNameRe
         }
     }
 
-    public void animateBounce(RecyclerView.ViewHolder viewHolder) {
-        final Animation animAnticipateOvershoot = AnimationUtils.loadAnimation(context, R.anim.bounce_interpolator);
-        viewHolder.itemView.setAnimation(animAnticipateOvershoot);
-    }
-
     @Override
     public int getItemCount() {
         return dealList.size();
     }
 
-    // petq chi
-    public void insert(int position, Deal deal) {
-        dealList.add(position, deal);
-        notifyItemInserted(position);
-    }
 
     public void deleteDeal(int position) {
 
@@ -379,25 +396,23 @@ public class DealNameRecyclerViewAdapter extends RecyclerView.Adapter<DealNameRe
     }
 
 
-    public static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, ExpandableLayout.OnExpansionUpdateListener, View.OnLongClickListener {
+    public static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
 
-        List<Task> taskList;
         ImageView imageView;
         TextView dealName;
-        ExpandableLayout dealExpandableLayout;
+        ExpandableLinearLayout dealExpandableLayout;
 
         //set up recycler view
         RecyclerView taskRecyclerView;
         RecyclerView.LayoutManager taskVerticallinLayoutManager;
         RecyclerView.LayoutManager taskHorizontalLinLayoutManager;
-        TaskRecyclerViewAdapter taskAdapter;
+        public static TaskRecyclerViewAdapter taskAdapter;
 
-        ItemLongClickListener itemLongClickListener;
-        boolean isExpanded;
+        ItemClickListener itemClickListener;
+        boolean isExpanded = false;
 
-
-        public void setItemLongClickListener(ItemLongClickListener itemLongClickListener){
-            this.itemLongClickListener = itemLongClickListener;
+        public void setItemClickListener(ItemClickListener itemClickListener){
+            this.itemClickListener = itemClickListener;
         }
 
         public ViewHolder(View itemView) {
@@ -444,19 +459,19 @@ public class DealNameRecyclerViewAdapter extends RecyclerView.Adapter<DealNameRe
         public void bindTask(int row_index, String taskName) {
 
             //Check which recyclerView adapter will insert task(row_index=longClickedDealPosition)
-           //  if(dBhelper.getTasksCountByDealId(row_index) < 3 ) {
 
                 //Get deal_id at row_index
                 List<Deal> reversedList = dBhelper.getAllDeals();
                 Collections.reverse(reversedList);
 
-                Deal deal = reversedList.get(row_index);     //dBhelper.getAllDeals().get(row_index);
+                Deal deal = reversedList.get(row_index);
                 int deal_id = deal.getId();
 
                 Task task = new Task();
                 task.setDeal_id(deal_id);
                 task.setTaskName(taskName);
                 task.setTask_number(dBhelper.getTasksCountByDealId(deal_id));
+                task.setDisabled(0);
 
                 if (dBhelper.insertTask(task)) {
 
@@ -467,95 +482,73 @@ public class DealNameRecyclerViewAdapter extends RecyclerView.Adapter<DealNameRe
                     taskAdapter.notifyItemInserted(dBhelper.getAllTasksByDealID(deal.getId()).size());
                     taskAdapter.notifyDataSetChanged();
 
-                   // Toast.makeText(itemView.getContext(), "Task added, dealName =" + deal.getName() + ", task count=" + dBhelper.getTasksCountByDealId(deal_id), Toast.LENGTH_SHORT).show();
                     Log.i("hreshtak", "success:bindTask,task count at " + row_index + "=" + dBhelper.getTasksCountByDealId(deal_id));
-
-
-                    //Expand all tasks
-                    ViewGroup.LayoutParams params = dealExpandableLayout.getLayoutParams();
-                    params.height = dBhelper.getAllTasksByDealID(deal_id).size()*(itemView.getContext().getResources().getDimensionPixelSize(R.dimen.task_item_size));
-                    dealExpandableLayout.setLayoutParams(params);
-                    dealExpandableLayout.expand();
                 }
-
         }
 
 
-        public void expandTaskLayout(boolean expand, Context context){
+        public void expandTaskLayout(int position, boolean expand){
 
-            if(expand){
-
-                isExpanded = true;
-                ViewGroup.LayoutParams params = dealExpandableLayout.getLayoutParams();
-                params.height = taskList.size()*(context.getResources().getDimensionPixelSize(R.dimen.task_item_size));
-                dealExpandableLayout.setLayoutParams(params);
-
-               // dealExpandableLayout.move(taskList.size()*(context.getResources().getDimensionPixelSize(R.dimen.task_item_size)));
-                dealExpandableLayout.expand();
-            }
-            else{
-
-                isExpanded = false;
-                ViewGroup.LayoutParams params = dealExpandableLayout.getLayoutParams();
-                params.height = bottomBlueLinLayout.getContext().getResources().getDimensionPixelSize(R.dimen.task_item_size);
-                dealExpandableLayout.setLayoutParams(params);
-
-               // dealExpandableLayout.move(bottomBlueLinLayout.getContext().getResources().getDimensionPixelSize(R.dimen.task_item_size));
-                dealExpandableLayout.collapse();
-            }
-        }
-
-        @Override
-        public void onClick(View v) {
-
-
-            //Get deal_id at row_index
             List<Deal> reversedList = dBhelper.getAllDeals();
             Collections.reverse(reversedList);
 
-            Deal deal = reversedList.get(getAdapterPosition());     //dBhelper.getAllDeals().get(row_index);
+            Deal deal = reversedList.get(position);
             int deal_id = deal.getId();
 
+            if(expand){
 
-
-            if (dealExpandableLayout.getLayoutParams().height == itemView.getContext().getResources().getDimensionPixelSize(R.dimen.task_item_size)) {
-
-                // holder.expandTaskLayout(false, context);
-
-                //Expand all tasks
+                isExpanded = false;
                 ViewGroup.LayoutParams params = dealExpandableLayout.getLayoutParams();
-                params.height = dBhelper.getAllTasksByDealID(deal_id).size() * (itemView.getContext().getResources().getDimensionPixelSize(R.dimen.task_item_size));
+                params.height = dBhelper.getAllTasksByDealID(deal_id).size()*(itemView.getContext().getResources().getDimensionPixelSize(R.dimen.task_item_size));
                 dealExpandableLayout.setLayoutParams(params);
-                dealExpandableLayout.expand();
+
+                dealExpandableLayout.move( params.height);
+                Log.i("hreshtak", "task list size=="+ dBhelper.getAllTasksByDealID(deal_id).size());
 
             }
             else{
-                //Always show 1 task
+
+                isExpanded = true;
                 ViewGroup.LayoutParams params = dealExpandableLayout.getLayoutParams();
                 params.height = itemView.getContext().getResources().getDimensionPixelSize(R.dimen.task_item_size);
                 dealExpandableLayout.setLayoutParams(params);
-                dealExpandableLayout.expand();
 
-                // holder.expandTaskLayout(true, context);
+                dealExpandableLayout.move(params.height);
             }
-
-
         }
 
-        @Override
-        public void onExpansionUpdate(float expansionFraction, int state) {
-            Log.d("ExpandableLayout", "State: " + state);
+        public void expandTask(int position, boolean expand) {
 
-            if (state == ExpandableLayout.State.EXPANDING) {
-                taskRecyclerView.smoothScrollToPosition(getAdapterPosition());
+
+            List<Deal> reversedList = dBhelper.getAllDeals();
+            Collections.reverse(reversedList);
+
+            Deal deal = reversedList.get(position);
+            int deal_id = deal.getId();
+
+            if (expand) {
+
+                ViewGroup.LayoutParams params = dealExpandableLayout.getLayoutParams();
+                params.height = dBhelper.getAllTasksByDealID(deal_id).size()*(itemView.getContext().getResources().getDimensionPixelSize(R.dimen.task_item_size));
+                dealExpandableLayout.setLayoutParams(params);
+                dealExpandableLayout.move( params.height);
             }
+        }
+
+
+        @Override
+        public void onClick(View view) {
+
+            itemClickListener.onClick(view,getAdapterPosition());
         }
 
         @Override
         public boolean onLongClick(View view) {
 
-            itemLongClickListener.onLongClick(view,getAdapterPosition());
+            itemClickListener.onLongClick(view,getAdapterPosition());
             return true;
         }
+
+
     }
 }

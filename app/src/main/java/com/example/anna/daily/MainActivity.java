@@ -20,9 +20,10 @@ import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Base64;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
@@ -30,15 +31,15 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 import com.example.anna.daily.adapter.DealNameRecyclerViewAdapter;
 import com.example.anna.daily.model.Deal;
 import com.mikhaellopez.circularimageview.CircularImageView;
-
+import static com.example.anna.daily.adapter.DealNameRecyclerViewAdapter.ViewHolder.taskAdapter;
+import static com.example.anna.daily.adapter.DealNameRecyclerViewAdapter.deal_row_index;
+import static com.example.anna.daily.adapter.TaskRecyclerViewAdapter.task_row_index;
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -48,8 +49,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private DBhelper dBhelper;
     private List<Deal> dealList;
+
     private Button addDealBttn;
     private Button saveDealBttn;
+    private Button updateDealBttn;
+    private Button addTaskBttn;
 
     private LinearLayout bottomWhiteLinLayout;
     private LinearLayout bottomBlueLinLayout;
@@ -57,13 +61,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private ImageButton photoButton;
     private ImageButton voiceButton;
 
+    private ImageButton editButton;
+    private ImageButton deleteButton;
+
     private EditText dealNameEditText;
     private CircularImageView imageView;
 
     private RecyclerView mRecyclerView;
     private RecyclerView.LayoutManager verticallinLayoutManager;
     private RecyclerView.LayoutManager horizontalLinLayoutManager;
-    private DealNameRecyclerViewAdapter mAdapter;
+    public static DealNameRecyclerViewAdapter mAdapter;
 
     private Context mContext;
     private Toolbar toolbar;
@@ -99,10 +106,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         addDealBttn = findViewById(R.id.addDealButton);
         saveDealBttn = findViewById(R.id.saveDealButton);
+        updateDealBttn = findViewById(R.id.updateDealButton);
+        addTaskBttn = findViewById(R.id.addTaskButton);
+
+        editButton = findViewById(R.id.editButton);
+        deleteButton = findViewById(R.id.deleteButton);
+
         addDealBttn.setOnClickListener(this);
         saveDealBttn.setOnClickListener(this);
 
         bottomWhiteLinLayout = findViewById(R.id.bottomWhiteLinLayout);
+        bottomBlueLinLayout= findViewById(R.id.bottomBlueLinLayout);
         pathButton = findViewById(R.id.pathButton);
         photoButton = findViewById(R.id.photoButton);
         voiceButton = findViewById(R.id.voiceButton);
@@ -121,6 +135,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         toolbarCloseBttn.setOnClickListener(this);
         toolbarBttnLayout.setOnClickListener(this);
 
+        toolbarSearchET.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if(toolbarSearchET.getText().toString().matches("")){
+                    updateData();
+                }
+                toolbarSearchBttn.setVisibility(View.VISIBLE); }
+            @Override
+            public void afterTextChanged(Editable s) { }
+        });
+
+
         // Set up RecyclerView Layout
         mRecyclerView = findViewById(R.id.dealRecyclerView);
         verticallinLayoutManager = new LinearLayoutManager(mContext, LinearLayoutManager.VERTICAL,false);
@@ -133,6 +161,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         itemAnimator.setAddDuration(1000);
         itemAnimator.setRemoveDuration(1000);
         mRecyclerView.setItemAnimator(itemAnimator);
+
 
         //Set up adapter
         dBhelper = new DBhelper(this);
@@ -149,11 +178,29 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onBackPressed() {
 
-       super.onBackPressed();
+        //Bring everything to original look
+       if(bottomBlueLinLayout.isShown() || bottomWhiteLinLayout.isShown()){
+           hideKeyboard();
+
+           dealNameEditText.setText("");
+           addDealBttn.setVisibility(View.VISIBLE);
+           saveDealBttn.setVisibility(View.VISIBLE);
+           updateDealBttn.setVisibility(View.VISIBLE);
+           addTaskBttn.setVisibility(View.VISIBLE);
+           editButton.setVisibility(View.VISIBLE);
+           deleteButton.setVisibility(View.VISIBLE);
+
+           bottomWhiteLinLayout.setVisibility(View.GONE);
+           bottomBlueLinLayout.setVisibility(View.GONE);
+
+           deal_row_index = -1;
+           task_row_index = -1;
+           mAdapter.notifyDataSetChanged();
+           taskAdapter.notifyDataSetChanged();
+
+       }else
+           super.onBackPressed();
     }
-
-
-
 
     @Override
     public void onClick(View v) {
@@ -178,7 +225,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 addDeal();
 
-
                 break;
 
             case R.id.pathButton:
@@ -198,35 +244,54 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             case R.id.toolbaBttnLayout:
             case R.id.toolbarSearchBttn:
+            case R.id.toolbarCloseBttn:
 
                 if (toolbarSearchBttn.isShown()) {
 
-                    toolbarSearchBttn.setVisibility(View.INVISIBLE);
                     String searchText = toolbarSearchET.getText().toString();
 
-                    //dealList = dBhelper.searchByDealName(searchText);
+                    if(!searchText.matches("")){
 
-                    Log.i("hreshtak","search list="+dealList);
-
-                    //mAdapter.notifyDataSetChanged();
-                   // mAdapter = new DealNameRecyclerViewAdapter(this, dealList);
-                   // mRecyclerView.setAdapter(mAdapter);
+                        toolbarSearchBttn.setVisibility(View.INVISIBLE);
+                        dealList = dBhelper.searchByDealName(searchText);
+                        mAdapter = new DealNameRecyclerViewAdapter(this, dealList);
+                        mRecyclerView.setAdapter(mAdapter);
+                    }
                }else {
 
                     toolbarSearchBttn.setVisibility(View.VISIBLE);
-                    //dealList = dBhelper.getAllDeals();
-                    //updateData();
+                    dealList = dBhelper.getAllDeals();
+                    updateData();
+                    toolbarSearchET.setText("");
                 }
+                dBhelper.closeDB();
                 break;
         }
+    }
+
+    @Override
+    protected void onStop() {
+
+      super.onStop();
+
+    /*  if(tempTaskList.size()>0){
+
+        for (int i = 0; i < tempTaskList.size(); i++) {
+           if(dBhelper.updateTask(tempTaskList.get(i).getTaskName(),tempTaskList.get(i).getDeal_id(),tempTaskList.get(i).getTask_number(),tempTaskList.get(i).getDisabled())){
+
+               Log.i("hreshtak","onStop, tasks color updated");
+               tempTaskList.clear();
+           } else
+               Log.i("hreshtak","onStop, tasks color not updated");
+        } }
+
+    */
     }
 
     public void hideKeyboard(){
 
         InputMethodManager imm2 = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
         imm2.hideSoftInputFromWindow(dealNameEditText.getWindowToken(), 0);
-
-
     }
 
     public void showKeyboard(){
@@ -274,7 +339,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
            dBhelper.closeDB();
 
        }else
-           Toast.makeText(mContext, "Deal not added, try again", Toast.LENGTH_SHORT).show();
+           Toast.makeText(mContext, "Deal not added", Toast.LENGTH_SHORT).show();
     }
 
 
@@ -285,6 +350,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         mAdapter = new DealNameRecyclerViewAdapter(this, dealList);
         mRecyclerView.setAdapter(mAdapter);
+
     }
 
     private void requestRecordPermission(){
@@ -375,18 +441,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                     hideKeyboard();
                     Bitmap picture = (Bitmap) data.getExtras().get("data");
-                    Uri imageUri = getImageUri(getApplicationContext(), picture);
+                   // Uri imageUri = getImageUri(getApplicationContext(), picture);
 
                     //decode image and convert it to Base64 format
-                    base64Image = imageToString(decodeImage(imageUri));
+                    base64Image = imageToString(picture);
 
-                    //Saving Deal
-                    addDealBttn.setVisibility(View.VISIBLE);
-                    bottomWhiteLinLayout.setVisibility(View.GONE);
-                    hideKeyboard();
+                    if(isInserting) {
 
-
-                    addDeal();
+                        addDealBttn.setVisibility(View.VISIBLE);
+                        bottomWhiteLinLayout.setVisibility(View.GONE);
+                        hideKeyboard();
+                        addDeal();
+                    }
                 }
 
                 break;
@@ -466,7 +532,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         decodedBitmap = bitmap;
 
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        decodedBitmap.compress(Bitmap.CompressFormat.JPEG,50, byteArrayOutputStream);
+        decodedBitmap.compress(Bitmap.CompressFormat.JPEG,100, byteArrayOutputStream);
 
         byte [] imgByte = byteArrayOutputStream.toByteArray();
         return Base64.encodeToString(imgByte , Base64.DEFAULT);

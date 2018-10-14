@@ -21,7 +21,7 @@
         <Button
             android:id="@+id/updateTaskButton"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="55dp"
             android:layout_below="@+id/main_toolbar"
             android:background="#0088ff"
             android:elevation="0dp"
@@ -29,12 +29,12 @@
             android:text="✓Save"
             android:textAllCaps="false"
             android:textColor="@android:color/white"
-            android:textSize="24sp" />
+            android:textSize="28sp" />
 
         <Button
             android:id="@+id/addTaskButton"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="55dp"
             android:layout_below="@+id/main_toolbar"
             android:background="#0088ff"
             android:elevation="0dp"
@@ -42,13 +42,13 @@
             android:text="✓Save"
             android:textAllCaps="false"
             android:textColor="@android:color/white"
-            android:textSize="24sp" />
+            android:textSize="28sp" />
 
 
         <Button
             android:id="@+id/updateDealButton"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="55dp"
             android:layout_below="@+id/main_toolbar"
             android:background="#0088ff"
             android:elevation="0dp"
@@ -56,12 +56,12 @@
             android:text="✓Save"
             android:textAllCaps="false"
             android:textColor="@android:color/white"
-            android:textSize="24sp" />
+            android:textSize="28sp" />
 
         <Button
             android:id="@+id/saveDealButton"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="55dp"
             android:layout_below="@+id/main_toolbar"
             android:background="#0088ff"
             android:elevation="0dp"
@@ -69,21 +69,21 @@
             android:text="✓Save"
             android:textAllCaps="false"
             android:textColor="@android:color/white"
-            android:textSize="24sp" />
+            android:textSize="28sp" />
 
 
         <Button
             android:id="@+id/addDealButton"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="55dp"
             android:layout_below="@+id/main_toolbar"
             android:background="@color/colorAccent"
+            android:elevation="0dp"
             android:fontFamily="@font/verdana"
             android:text="+Deal"
             android:textAllCaps="false"
-            android:elevation="0dp"
             android:textColor="@android:color/white"
-            android:textSize="24sp" />
+            android:textSize="28sp" />
 
     </RelativeLayout>
 

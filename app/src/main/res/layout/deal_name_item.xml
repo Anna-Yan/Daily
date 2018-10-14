@@ -58,16 +58,15 @@
         android:layout_height="1dp"
         android:background="#f5f5f5" />
 
-    <net.cachapa.expandablelayout.ExpandableLayout
+    <com.github.aakira.expandablelayout.ExpandableLinearLayout
         android:id="@+id/dealExpLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
-        app:ael_duration="1500"
-        app:ael_expanded="false"
-        app:ael_interpolator="overshoot"
-        app:ael_orientation="vertical"
-        app:el_parallax="0.5">
+        android:orientation="vertical"
+        app:ael_duration="500"
+        app:ael_expanded="true"
+        app:ael_interpolator="overshoot">
 
         <android.support.v7.widget.RecyclerView
             android:id="@+id/taskRecyclerView"
@@ -80,6 +79,6 @@
 
         </android.support.v7.widget.RecyclerView>
 
-    </net.cachapa.expandablelayout.ExpandableLayout>
+    </com.github.aakira.expandablelayout.ExpandableLinearLayout>
 
 </LinearLayout>

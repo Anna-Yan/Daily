@@ -74,7 +74,7 @@
             android:layout_height="wrap_content"
             android:layout_below="@+id/dealItemLayout"
             android:layout_gravity="center"
-            android:paddingLeft="25dp"
+            android:paddingLeft="20dp"
             android:scrollbars="vertical">
 
         </android.support.v7.widget.RecyclerView>

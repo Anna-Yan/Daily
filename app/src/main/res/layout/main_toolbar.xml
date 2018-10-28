@@ -33,7 +33,7 @@
             <EditText
                 android:id="@+id/toolbarSearchEditText"
                 android:layout_width="match_parent"
-                android:layout_height="30dp"
+                android:layout_height="35dp"
                 android:background="@null"
                 android:focusableInTouchMode="true"
                 android:fontFamily="@font/verdana"

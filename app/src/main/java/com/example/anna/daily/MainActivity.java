@@ -25,10 +25,13 @@ import android.text.TextWatcher;
 import android.util.Base64;
 import android.util.Log;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
@@ -63,7 +66,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private ImageButton editButton;
     private ImageButton deleteButton;
-
     private EditText dealNameEditText;
     private CircularImageView imageView;
 
@@ -90,6 +92,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Bitmap decodedBitmap;
     public  static String base64Image = "";
     public static boolean isInserting;
+    private Animation slideDownAnimation;
 
 
     @Override
@@ -143,10 +146,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if(toolbarSearchET.getText().toString().matches("")){
                     updateData();
                 }
-                toolbarSearchBttn.setVisibility(View.VISIBLE); }
+                toolbarSearchBttn.setVisibility(View.VISIBLE);
+            }
             @Override
             public void afterTextChanged(Editable s) { }
         });
+
 
 
         // Set up RecyclerView Layout
@@ -158,10 +163,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         //set Animation to recyclerview item
         RecyclerView.ItemAnimator itemAnimator = new DefaultItemAnimator();
-        itemAnimator.setAddDuration(1000);
-        itemAnimator.setRemoveDuration(1000);
+        itemAnimator.setAddDuration(3000);
+        itemAnimator.setRemoveDuration(3000);
         mRecyclerView.setItemAnimator(itemAnimator);
-
 
         //Set up adapter
         dBhelper = new DBhelper(this);
@@ -172,8 +176,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         mAdapter = new DealNameRecyclerViewAdapter(mContext,dealList);
         mRecyclerView.setAdapter(mAdapter);
-
     }
+
 
     @Override
     public void onBackPressed() {
@@ -191,15 +195,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
            deleteButton.setVisibility(View.VISIBLE);
 
            bottomWhiteLinLayout.setVisibility(View.GONE);
-           bottomBlueLinLayout.setVisibility(View.GONE);
+           hideBlueLayout();
 
            deal_row_index = -1;
            task_row_index = -1;
            mAdapter.notifyDataSetChanged();
-           taskAdapter.notifyDataSetChanged();
+           if(taskAdapter != null){
+               taskAdapter.notifyDataSetChanged();
+           }
 
        }else
            super.onBackPressed();
+
     }
 
     @Override
@@ -266,26 +273,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 dBhelper.closeDB();
                 break;
+
         }
     }
 
     @Override
-    protected void onStop() {
-
-      super.onStop();
-
-    /*  if(tempTaskList.size()>0){
-
-        for (int i = 0; i < tempTaskList.size(); i++) {
-           if(dBhelper.updateTask(tempTaskList.get(i).getTaskName(),tempTaskList.get(i).getDeal_id(),tempTaskList.get(i).getTask_number(),tempTaskList.get(i).getDisabled())){
-
-               Log.i("hreshtak","onStop, tasks color updated");
-               tempTaskList.clear();
-           } else
-               Log.i("hreshtak","onStop, tasks color not updated");
-        } }
-
-    */
+    protected void onDestroy() {
+        Log.i("hreshtak", "onDestroy, row index="+deal_row_index);
+        deal_row_index = -5;
+        super.onDestroy();
     }
 
     public void hideKeyboard(){
@@ -329,6 +325,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Deal deal = new Deal();
         deal.setName(dealNameEditText.getText().toString());
         deal.setImagePath(base64Image);
+        deal.setExpanded(0);
 
        if(dBhelper.insertDeal(deal)) {
 
@@ -385,6 +382,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+
+    private void hideBlueLayout(){
+
+        slideDownAnimation = AnimationUtils.loadAnimation(getApplicationContext(),
+                R.anim.slide_down);
+
+            bottomBlueLinLayout.startAnimation(slideDownAnimation);
+            bottomBlueLinLayout.setVisibility(View.GONE);
+    }
     private void pickPhotofromGallery(){
 
         Toast.makeText(mContext, "Choose picture", Toast.LENGTH_SHORT).show();

@@ -21,7 +21,7 @@ import java.util.List;
 
 public class DBhelper extends SQLiteOpenHelper {
 
-    public static final int DBVERSION = 3;
+    public static final int DBVERSION = 5;
     public static final String DBNAME = "dailyDB";
 
     //Set up Deal Table
@@ -29,6 +29,7 @@ public class DBhelper extends SQLiteOpenHelper {
     public static final String DEAL_ID = "id";
     public static final String DEAL_NAME= "name";
     public static final String IMAGE_PATH= "imagePath";
+    public static final String DEAL_EXPANDED= "expanded";
 
     //Set up Task Table
     public static final String TASK_TABLE = "taskTB";
@@ -38,7 +39,7 @@ public class DBhelper extends SQLiteOpenHelper {
     public static final String TASK_DISABLED = "disabled";
 
     //CREATE TB
-    public static String queryCreateDealTable = "CREATE TABLE " + DEAL_TABLE + "(id integer primary key autoincrement, "+ DEAL_NAME +" text, "+ IMAGE_PATH +" text);";
+    public static String queryCreateDealTable = "CREATE TABLE " + DEAL_TABLE + "(id integer primary key autoincrement, "+ DEAL_NAME +" text, "+ IMAGE_PATH +" text, "+ DEAL_EXPANDED+" integer);";
     public static String queryCreateTaskTable = "CREATE TABLE " + TASK_TABLE + "("+ TASK_NAME +" text, "+ TASK_NUMBER +" integer, "+ TASK_DEAL_ID +" integer, "+ TASK_DISABLED+" integer);";
 
     //DROP TB
@@ -74,6 +75,7 @@ public class DBhelper extends SQLiteOpenHelper {
             ContentValues cv = new ContentValues();
             cv.put(DEAL_NAME, deal.getName());
             cv.put(IMAGE_PATH, deal.getImagePath());
+            cv.put(DEAL_EXPANDED, deal.getExpanded());
 
             db = getWritableDatabase();
             long result = db.insert(DEAL_TABLE, null, cv);
@@ -110,6 +112,24 @@ public class DBhelper extends SQLiteOpenHelper {
         return false;
     }
 
+    /** UPDATE Deal Expanded**/
+    public boolean changeDealExpanded(int id,int expanded) {
+
+        try {
+
+            ContentValues cv = new ContentValues();
+            cv.put(DEAL_EXPANDED,expanded);
+
+            int result = db.update(DEAL_TABLE, cv, DEAL_ID + " =?", new String[]{String.valueOf(id)});
+            if (result > 0) {
+                return true;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return false;
+    }
 
     /** DELETE Deal **/
     public boolean deleteDeal(int id)
@@ -144,6 +164,7 @@ public class DBhelper extends SQLiteOpenHelper {
             deal.setId(cursor.getInt(0));
             deal.setName(cursor.getString(1));
             deal.setImagePath(cursor.getString(2));
+            deal.setExpanded(cursor.getInt(3));
 
             Log.d("DealID column", String.valueOf(cursor.getInt(0)));
             Log.d("DealNAme column", String.valueOf(cursor.getLong(1)));
@@ -218,6 +239,8 @@ public class DBhelper extends SQLiteOpenHelper {
         return false;
     }
 
+
+
     /** UPDATE Task **/
     public boolean updateTask(String newName, int deal_id, int task_number, int disable) {
         db = getReadableDatabase();
@@ -288,7 +311,7 @@ public class DBhelper extends SQLiteOpenHelper {
     public List<Task> getAllTasksByDealID(int id) {
 
         List<Task> list = new ArrayList<>();
-        String query = "SELECT * FROM "+TASK_TABLE+" WHERE "+TASK_DEAL_ID+"= " +id;
+        String query = "SELECT * FROM "+TASK_TABLE+" WHERE "+TASK_DEAL_ID+"= " +id +" ORDER BY "+TASK_NUMBER+" DESC";
         db = getReadableDatabase();
         Cursor cursor = db.rawQuery(query, null);
 

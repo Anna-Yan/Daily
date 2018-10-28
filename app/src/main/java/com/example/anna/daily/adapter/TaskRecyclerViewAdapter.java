@@ -4,8 +4,10 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.content.Context;
 import android.graphics.Color;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,27 +19,32 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 import com.example.anna.daily.ItemClickListener;
 import com.example.anna.daily.R;
 import com.example.anna.daily.model.Deal;
 import com.example.anna.daily.model.Task;
-import com.github.aakira.expandablelayout.ExpandableLinearLayout;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import static com.example.anna.daily.adapter.DealNameRecyclerViewAdapter.dBhelper;
 import static com.example.anna.daily.MainActivity.mAdapter;
 import static com.example.anna.daily.adapter.DealNameRecyclerViewAdapter.deal_row_index;
+
+import static com.example.anna.daily.adapter.DealNameRecyclerViewAdapter.taskCRUD;
 
 
 public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerViewAdapter.ViewHolder> {
 
 
     private Context context;
-    private static LinearLayout bottomBlueLinLayout;
+    private  LinearLayout bottomBlueLinLayout;
     private LinearLayout bottomWhiteLinLayout;
-    private ExpandableLinearLayout dealExpandableLayout;
 
+    private Animation slideUpAnimation, slideDownAnimation;
     private EditText dealNameEditText;
     private ImageButton pathButton;
     private ImageButton photoButton;
@@ -64,6 +71,8 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
         this.taskList = taskList;
     }
 
+
+
     @NonNull
     @Override
     public TaskRecyclerViewAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -72,7 +81,6 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
 
         bottomBlueLinLayout = parent.getRootView().findViewById(R.id.bottomBlueLinLayout);
         bottomWhiteLinLayout = parent.getRootView().findViewById(R.id.bottomWhiteLinLayout);
-        dealExpandableLayout = parent.getRootView().findViewById(R.id.dealExpLayout);
         dealNameEditText = parent.getRootView().findViewById(R.id.dealNameEditText);
         pathButton = parent.getRootView().findViewById(R.id.pathButton);
         photoButton = parent.getRootView().findViewById(R.id.photoButton);
@@ -85,6 +93,13 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
         addTaskButton = parent.getRootView().findViewById(R.id.addTaskButton);
         editTaskButton = parent.getRootView().findViewById(R.id.editTaskButton);
         deleteTaskButton = parent.getRootView().findViewById(R.id.deleteTaskButton);
+
+
+        slideUpAnimation = AnimationUtils.loadAnimation(context,
+                R.anim.slide_up);
+
+        slideDownAnimation = AnimationUtils.loadAnimation(context,
+                R.anim.slide_down);
 
         return new ViewHolder(view);
     }
@@ -103,6 +118,7 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
         }
 
 
+
         //Holder Long click
         holder.setItemClickListener(new ItemClickListener() {
             @Override
@@ -115,6 +131,7 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
                 int dealPosition = (list.get(list.size()-1).getId())-taskList.get(task_row_index).getDeal_id();
 
                 deal_row_index = dealPosition;
+
 
                 Log.i("hreshtak", "task row_index="+task_row_index);
 
@@ -138,7 +155,7 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
                     @Override
                     public void onClick(View v) {
 
-                        animateBlueLayout(true);
+
                         hideKeyboard();
                         addDealBttn.setVisibility(View.VISIBLE);
                         editDealButton.setVisibility(View.VISIBLE);
@@ -157,14 +174,19 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
 
                         if (bottomWhiteLinLayout.getVisibility() == View.VISIBLE) {
 
+                            bottomBlueLinLayout.setVisibility(View.GONE);
                             String edittedText = dealNameEditText.getText().toString();
                             holder.taskName.setText(edittedText);
 
                             updateTask(edittedText, task_row_index, taskList.get(task_row_index).getDisabled());
-
+                        }else{
+                            animateBlueLayout(true);
                         }
+
                         task_row_index = -1;
-                        deal_row_index = -1;
+                        taskCRUD = true;
+
+                        mAdapter.notifyDataSetChanged();
                         notifyDataSetChanged();
                         bottomWhiteLinLayout.setVisibility(View.GONE);
                     }
@@ -174,7 +196,7 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
                     @Override
                     public void onClick(View v) {
 
-                        animateBlueLayout(true);
+                        bottomBlueLinLayout.setVisibility(View.GONE);
                         showKeyboard();
                         bottomWhiteLinLayout.setVisibility(View.VISIBLE);
                         addTaskButton.setVisibility(View.INVISIBLE);
@@ -201,7 +223,9 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
                         task_row_index = -1;
                         notifyDataSetChanged();
 
+                        taskCRUD = true;
                         mAdapter.notifyDataSetChanged(); //for notifying dealAdapter to change expandLayout size
+
 
                         addDealBttn.setVisibility(View.VISIBLE);
                         editDealButton.setVisibility(View.VISIBLE);
@@ -218,7 +242,7 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
             }
 
 
-
+            //Handle click on tasks buttons
             @Override
             public void onClick(View view, int position) {
 
@@ -226,15 +250,15 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
 
                 if (view.getId() == R.id.whiteCircleButton ) {
 
+                    Log.i("hreshtak","taskList,white 1==== "+taskList);
+
                     holder.taskName.setTextColor(context.getResources().getColor(R.color.taskItemDisabledColor));
                     holder.whiteButton.setVisibility(View.GONE);
-
 
                     Animation anim = AnimationUtils.loadAnimation(context, R.anim.slide_left);
                     anim.setAnimationListener(new Animation.AnimationListener() {
                         @Override
                         public void onAnimationStart(Animation animation) {
-
                         }
                         @Override
                         public void onAnimationEnd(Animation animation) {
@@ -243,13 +267,50 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
 
                             /// insert task
                             task.setDisabled(1);
+                           // task.setTask_number(taskList.get(0).getTask_number()+1);
+
                             if (dBhelper.insertTask(task)) {
 
                                 taskList = dBhelper.getAllTasksByDealID(task.getDeal_id());
+                                 List<Task> newTaskList = new ArrayList<>();
 
-                                //updateData
+                                Log.i("hreshtak","taskList,white 2==== "+taskList);
+
+                                            for (int i = 0; i < taskList.size(); i++) {
+
+                                                if(taskList.get(i).getDisabled() == 0){
+
+                                                    newTaskList.add(taskList.get(i));
+                                                    Log.i("hreshtak","onBind, disabled "+task.getTask_number());
+                                                }
+                                            }
+
+                                            for (int i = 0; i < taskList.size(); i++) {
+                                                if (taskList.get(i).getDisabled() == 1) {
+
+                                                    newTaskList.add(taskList.get(i));
+                                                    Log.i("hreshtak", "onBind, enabled ");
+                                                }
+                                            }
+
+                                            //updateData
+
+                                            taskList = newTaskList;
+
+
+                                            //Update Expandable layout size
+                                            List<Deal> deallist = dBhelper.getAllDeals();
+                                            int dealPosition = (deallist.get(deallist.size()-1).getId())-task.getDeal_id();
+                                            Collections.reverse(deallist);
+                                            Deal deal = deallist.get(dealPosition);
+
+                                            if(deal.getExpanded() == 0){
+                                                mAdapter.notifyDataSetChanged();
+                                            }
+                                            ///////////////
+
                                 task_row_index = -1;
-                                notifyItemInserted(taskList.size());
+                                notifyItemInserted(taskList.size()-1);
                                 notifyDataSetChanged();
 
                                 dBhelper.closeDB();
@@ -261,18 +322,76 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
 
                     holder.itemView.startAnimation(anim);
 
+
                 }
-                if (view.getId() == R.id.blueCircleButton) {
+                if (view.getId() == R.id.blueCircleButton ) {
 
                     holder.taskName.setTextColor(context.getResources().getColor(R.color.taskItemColor));
                     holder.whiteButton.setVisibility(View.VISIBLE);
 
-                    if(dBhelper.updateTask(task.getTaskName(),task.getDeal_id(),task.getTask_number(),0)){
+                    Animation anim = AnimationUtils.loadAnimation(context, R.anim.slide_left);
+                    anim.setAnimationListener(new Animation.AnimationListener() {
+                        @Override
+                        public void onAnimationStart(Animation animation) {
+                        }
+                        @Override
+                        public void onAnimationEnd(Animation animation) {
 
-                        task_row_index = -1;
-                        taskList = dBhelper.getAllTasksByDealID(task.getDeal_id());
-                        dBhelper.closeDB();
-                    }
+                            remove(task.getDeal_id(),task.getTask_number());
+
+                            /// insert task
+                            task.setDisabled(0);
+                            //task.setTask_number(dBhelper.getTasksCountByDealId(task.getDeal_id())+1);
+
+
+
+                            if(taskList.size()>0 ){
+                                task.setTask_number(taskList.get(taskList.size()-1).getTask_number()+1);
+                            }else{
+                                task.setTask_number(dBhelper.getTasksCountByDealId(task.getDeal_id()));
+                            }
+
+                            if (dBhelper.insertTask(task)) {
+
+
+                                taskList = dBhelper.getAllTasksByDealID(task.getDeal_id());
+                                 List<Task> newTaskList = new ArrayList<>();
+
+                                Log.i("hreshtak","taskList==== "+taskList);
+
+                                                for (int i = 0; i < taskList.size(); i++) {
+
+                                                    if(taskList.get(i).getDisabled() == 0){
+
+                                                        newTaskList.add(taskList.get(i));
+                                                        Log.i("hreshtak","onBind, disabled "+task.getTask_number());
+                                                    }
+                                                }
+                                                //newTaskList.add(taskList.get(0));
+
+                                                for (int i = 0; i < taskList.size(); i++) {
+                                                    if (taskList.get(i).getDisabled() == 1) {
+
+                                                        newTaskList.add(taskList.get(i));
+                                                        Log.i("hreshtak", "onBind, enabled ");
+                                                    }
+                                                }
+
+                                //updateData
+                                taskList = newTaskList;
+
+                                task_row_index = -1;
+                                notifyItemInserted(taskList.size()-1);
+                                notifyDataSetChanged();
+                                dBhelper.closeDB();
+                                Log.i("hreshtak", "task inserted");
+                            }
+                        }
+                        @Override
+                        public void onAnimationRepeat(Animation animation) { }
+                    });
+
+                    holder.itemView.startAnimation(anim);
                 }
             }
         });
@@ -288,10 +407,11 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
         if(dBhelper.updateTask(edittedText,deal_id,tusk_number,disable)){
 
             taskList = dBhelper.getAllTasksByDealID(deal_id);
+            Collections.reverse(taskList);
             dBhelper.closeDB();
 
             dealNameEditText.setText("");
-            Toast.makeText(context, "Task changed", Toast.LENGTH_SHORT).show();
+
         }
     }
 
@@ -301,11 +421,14 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
        if( dBhelper.deleteTask(deal_id, task_number)){
 
            taskList = dBhelper.getAllTasksByDealID(deal_id);
-           notifyItemRemoved(task_number);
-   }
-        else{
-           Toast.makeText(context, "Can not delete task", Toast.LENGTH_SHORT).show();
+           Collections.reverse(taskList);
+
+           notifyItemRemoved(task_row_index);
+           Log.i("hreshtak", "removed");
+   }else{
+           Log.i("hreshtak", "not removed");
        }
+
            dBhelper.closeDB();
    }
 
@@ -329,51 +452,32 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
         imm.showSoftInput(dealNameEditText, InputMethodManager.SHOW_IMPLICIT);
     }
 
-    private static void animateBlueLayout(boolean hide){
+    private void animateBlueLayout(boolean hide){
 
         if(hide){
 
-            bottomBlueLinLayout.animate()
-                    .alpha(0.0f)
-                    .setDuration(300)
-                    .setListener(new AnimatorListenerAdapter() {
-                        @Override
-                        public void onAnimationEnd(Animator animation) {
-                            super.onAnimationEnd(animation);
+        bottomBlueLinLayout.startAnimation(slideDownAnimation);
+        bottomBlueLinLayout.setVisibility(View.GONE);
 
-                            bottomBlueLinLayout.setVisibility(View.GONE);
-                        }
-                    });
         }
         else{
 
-            bottomBlueLinLayout.animate()
-                    .alpha(1.0f)
-                    .setDuration(300)
-                    .setListener(new AnimatorListenerAdapter() {
-                        @Override
-                        public void onAnimationEnd(Animator animation) {
-                            super.onAnimationEnd(animation);
-
-                            bottomBlueLinLayout.setVisibility(View.VISIBLE);
-                        }
-                    });
+         bottomBlueLinLayout.startAnimation(slideUpAnimation);
+         bottomBlueLinLayout.setVisibility(View.VISIBLE);
         }
     }
 
-    public void animateTask(RecyclerView.ViewHolder viewHolder) {
-        final Animation animAnticipateOvershoot = AnimationUtils.loadAnimation(context, R.anim.slide_left);
-        viewHolder.itemView.setAnimation(animAnticipateOvershoot);
-    }
+
 
     public static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
 
-        LinearLayout taskLayout;
-        TextView taskName;
+        RelativeLayout taskLayout;
+        public static TextView taskName;
         ImageButton whiteButton;
         ImageButton blueButton;
 
         ItemClickListener itemClickListener;
+
 
         public void setItemClickListener(ItemClickListener itemClickListener){
             this.itemClickListener = itemClickListener;

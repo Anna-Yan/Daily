@@ -5,6 +5,7 @@ public class Deal {
     private int id;
     private String name;
     private String imagePath;
+    private int expanded;
 
 
     public int getId() {
@@ -29,5 +30,23 @@ public class Deal {
 
     public void setImagePath(String imagePath) {
         this.imagePath = imagePath;
+    }
+
+    public int getExpanded() {
+        return expanded;
+    }
+
+    public void setExpanded(int expanded) {
+        this.expanded = expanded;
+    }
+
+    @Override
+    public String toString() {
+        return "Deal{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", imagePath='" + imagePath + '\'' +
+                ", expanded=" + expanded +
+                '}';
     }
 }

@@ -1,13 +1,9 @@
 package com.example.anna.daily.adapter;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
 import android.content.Context;
 import android.graphics.Color;
-import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -25,15 +21,10 @@ import com.example.anna.daily.ItemClickListener;
 import com.example.anna.daily.R;
 import com.example.anna.daily.model.Deal;
 import com.example.anna.daily.model.Task;
-
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import static com.example.anna.daily.adapter.DealNameRecyclerViewAdapter.dBhelper;
 import static com.example.anna.daily.MainActivity.mAdapter;
-import static com.example.anna.daily.adapter.DealNameRecyclerViewAdapter.deal_row_index;
-
 import static com.example.anna.daily.adapter.DealNameRecyclerViewAdapter.taskCRUD;
 
 
@@ -62,6 +53,7 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
     private ImageButton deleteTaskButton;
 
     public static int task_row_index = -1;
+    public static int taskDealID = 0;
     private List<Task> taskList;
 
 
@@ -70,7 +62,6 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
         this.context = mContext;
         this.taskList = taskList;
     }
-
 
 
     @NonNull
@@ -94,7 +85,6 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
         editTaskButton = parent.getRootView().findViewById(R.id.editTaskButton);
         deleteTaskButton = parent.getRootView().findViewById(R.id.deleteTaskButton);
 
-
         slideUpAnimation = AnimationUtils.loadAnimation(context,
                 R.anim.slide_up);
 
@@ -104,20 +94,17 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
         return new ViewHolder(view);
     }
 
+
     @Override
     public void onBindViewHolder(@NonNull final TaskRecyclerViewAdapter.ViewHolder holder, final int position) {
 
         holder.onBind(taskList.get(position));
         holder.setIsRecyclable(false);
 
-
         //make bold selected task
         if (task_row_index == position) {
             holder.taskName.setTextColor(Color.BLACK);
-
         }
-
-
 
         //Holder Long click
         holder.setItemClickListener(new ItemClickListener() {
@@ -126,14 +113,7 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
 
                 task_row_index = position;
 
-                List<Deal> list = dBhelper.getAllDeals();
-
-                int dealPosition = (list.get(list.size()-1).getId())-taskList.get(task_row_index).getDeal_id();
-
-                deal_row_index = dealPosition;
-
-
-                Log.i("hreshtak", "task row_index="+task_row_index);
+                taskDealID = taskList.get(task_row_index).getDeal_id();
 
                 notifyDataSetChanged(); //make effect to reyclerView
                 animateBlueLayout(false);
@@ -220,12 +200,8 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
 
                         remove(deal_id, tusk_number);
 
-                        task_row_index = -1;
-                        notifyDataSetChanged();
-
                         taskCRUD = true;
                         mAdapter.notifyDataSetChanged(); //for notifying dealAdapter to change expandLayout size
-
 
                         addDealBttn.setVisibility(View.VISIBLE);
                         editDealButton.setVisibility(View.VISIBLE);
@@ -248,151 +224,129 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
 
                 final Task task = taskList.get(position);
 
-                if (view.getId() == R.id.whiteCircleButton ) {
+                switch (view.getId()){
 
-                    Log.i("hreshtak","taskList,white 1==== "+taskList);
+                    case R.id.whiteCircleButton:
+                    case R.id.whiteBttnLayout:
 
-                    holder.taskName.setTextColor(context.getResources().getColor(R.color.taskItemDisabledColor));
-                    holder.whiteButton.setVisibility(View.GONE);
+                        holder.taskName.setTextColor(context.getResources().getColor(R.color.taskItemDisabledColor));
+                        holder.whiteBttnLayout.setVisibility(View.GONE);
 
-                    Animation anim = AnimationUtils.loadAnimation(context, R.anim.slide_left);
-                    anim.setAnimationListener(new Animation.AnimationListener() {
-                        @Override
-                        public void onAnimationStart(Animation animation) {
-                        }
-                        @Override
-                        public void onAnimationEnd(Animation animation) {
-
-                            remove(task.getDeal_id(),task.getTask_number());
-
-                            /// insert task
-                            task.setDisabled(1);
-                           // task.setTask_number(taskList.get(0).getTask_number()+1);
-
-                            if (dBhelper.insertTask(task)) {
-
-                                taskList = dBhelper.getAllTasksByDealID(task.getDeal_id());
-                                 List<Task> newTaskList = new ArrayList<>();
-
-                                Log.i("hreshtak","taskList,white 2==== "+taskList);
-
-                                            for (int i = 0; i < taskList.size(); i++) {
-
-                                                if(taskList.get(i).getDisabled() == 0){
-
-                                                    newTaskList.add(taskList.get(i));
-                                                    Log.i("hreshtak","onBind, disabled "+task.getTask_number());
-                                                }
-                                            }
-
-                                            for (int i = 0; i < taskList.size(); i++) {
-                                                if (taskList.get(i).getDisabled() == 1) {
-
-                                                    newTaskList.add(taskList.get(i));
-                                                    Log.i("hreshtak", "onBind, enabled ");
-                                                }
-                                            }
-
-                                            //updateData
-
-                                            taskList = newTaskList;
-
-
-                                            //Update Expandable layout size
-                                            List<Deal> deallist = dBhelper.getAllDeals();
-                                            int dealPosition = (deallist.get(deallist.size()-1).getId())-task.getDeal_id();
-                                            Collections.reverse(deallist);
-                                            Deal deal = deallist.get(dealPosition);
-
-                                            if(deal.getExpanded() == 0){
-                                                mAdapter.notifyDataSetChanged();
-                                            }
-                                            ///////////////
-
-                                task_row_index = -1;
-                                notifyItemInserted(taskList.size()-1);
-                                notifyDataSetChanged();
-
-                                dBhelper.closeDB();
+                        Animation anim = AnimationUtils.loadAnimation(context, R.anim.slide_left);
+                        anim.setAnimationListener(new Animation.AnimationListener() {
+                            @Override
+                            public void onAnimationStart(Animation animation) {
                             }
-                        }
-                        @Override
-                        public void onAnimationRepeat(Animation animation) { }
-                    });
+                            @Override
+                            public void onAnimationEnd(Animation animation) {
 
-                    holder.itemView.startAnimation(anim);
+                                remove(task.getDeal_id(),task.getTask_number());
+
+                                task.setDisabled(1);
+
+                                /// insert task
+                                if (dBhelper.insertTask(task)) {
+
+                                    taskList = dBhelper.getAllTasksByDealID(task.getDeal_id());
+                                    List<Task> newTaskList = new ArrayList<>();
+
+                                    for (int i = 0; i < taskList.size(); i++) {
+
+                                        if(taskList.get(i).getDisabled() == 0){
+
+                                            newTaskList.add(taskList.get(i));
+                                        }
+                                    }
+
+                                    for (int i = 0; i < taskList.size(); i++) {
+                                        if (taskList.get(i).getDisabled() == 1) {
+
+                                            newTaskList.add(taskList.get(i));
+                                        }
+                                    }
+
+                                    //when deal is not expanded,notify for changing task size
+                                    Deal deal = dBhelper.findDealByID(task.getDeal_id());
+                                    if(deal.getExpanded() == 0){
+                                        mAdapter.notifyDataSetChanged();
+                                        Log.i("hreshtak", "---mAdapter notified");
+                                    }
+
+                                    // update adapter
+                                    taskList = newTaskList;
+
+                                    task_row_index = -1;
+                                    notifyItemInserted(taskList.size());
+                                    notifyDataSetChanged();
+                                    dBhelper.closeDB();
+                                }
+                            }
+                            @Override
+                            public void onAnimationRepeat(Animation animation) { }
+                        });
+
+                        holder.itemView.startAnimation(anim);
+
+                        break;
 
 
+                    case R.id.blueCircleButton:
+                    case R.id.blueBttnLayout:
+
+
+                        holder.taskName.setTextColor(context.getResources().getColor(R.color.taskItemColor));
+                        holder.whiteBttnLayout.setVisibility(View.VISIBLE);
+
+                        Animation anim2 = AnimationUtils.loadAnimation(context, R.anim.slide_left);
+                        anim2.setAnimationListener(new Animation.AnimationListener() {
+                            @Override
+                            public void onAnimationStart(Animation animation) {
+                            }
+                            @Override
+                            public void onAnimationEnd(Animation animation) {
+
+                                remove(task.getDeal_id(),task.getTask_number());
+
+                                /// insert task
+                                task.setDisabled(0);
+
+                                if (dBhelper.insertTask(task)) {
+
+                                    taskList = dBhelper.getAllTasksByDealID(task.getDeal_id());
+                                    List<Task> newTaskList = new ArrayList<>();
+
+                                    for (int i = 0; i < taskList.size(); i++) {
+
+                                        if(taskList.get(i).getDisabled() == 0){
+
+                                            newTaskList.add(taskList.get(i));
+                                        }
+                                    }
+
+                                    for (int i = 0; i < taskList.size(); i++) {
+                                        if (taskList.get(i).getDisabled() == 1) {
+
+                                            newTaskList.add(taskList.get(i));
+                                        }
+                                    }
+
+                                    //updateData
+                                    taskList = newTaskList;
+
+                                    task_row_index = -1;
+                                    notifyItemInserted(0);
+                                    notifyDataSetChanged();
+                                    dBhelper.closeDB();
+                                }
+                            }
+                            @Override
+                            public void onAnimationRepeat(Animation animation) { }
+                        });
+
+                        holder.itemView.startAnimation(anim2);
+                        break;
                 }
-                if (view.getId() == R.id.blueCircleButton ) {
 
-                    holder.taskName.setTextColor(context.getResources().getColor(R.color.taskItemColor));
-                    holder.whiteButton.setVisibility(View.VISIBLE);
-
-                    Animation anim = AnimationUtils.loadAnimation(context, R.anim.slide_left);
-                    anim.setAnimationListener(new Animation.AnimationListener() {
-                        @Override
-                        public void onAnimationStart(Animation animation) {
-                        }
-                        @Override
-                        public void onAnimationEnd(Animation animation) {
-
-                            remove(task.getDeal_id(),task.getTask_number());
-
-                            /// insert task
-                            task.setDisabled(0);
-                            //task.setTask_number(dBhelper.getTasksCountByDealId(task.getDeal_id())+1);
-
-
-
-                            if(taskList.size()>0 ){
-                                task.setTask_number(taskList.get(taskList.size()-1).getTask_number()+1);
-                            }else{
-                                task.setTask_number(dBhelper.getTasksCountByDealId(task.getDeal_id()));
-                            }
-
-                            if (dBhelper.insertTask(task)) {
-
-
-                                taskList = dBhelper.getAllTasksByDealID(task.getDeal_id());
-                                 List<Task> newTaskList = new ArrayList<>();
-
-                                Log.i("hreshtak","taskList==== "+taskList);
-
-                                                for (int i = 0; i < taskList.size(); i++) {
-
-                                                    if(taskList.get(i).getDisabled() == 0){
-
-                                                        newTaskList.add(taskList.get(i));
-                                                        Log.i("hreshtak","onBind, disabled "+task.getTask_number());
-                                                    }
-                                                }
-                                                //newTaskList.add(taskList.get(0));
-
-                                                for (int i = 0; i < taskList.size(); i++) {
-                                                    if (taskList.get(i).getDisabled() == 1) {
-
-                                                        newTaskList.add(taskList.get(i));
-                                                        Log.i("hreshtak", "onBind, enabled ");
-                                                    }
-                                                }
-
-                                //updateData
-                                taskList = newTaskList;
-
-                                task_row_index = -1;
-                                notifyItemInserted(taskList.size()-1);
-                                notifyDataSetChanged();
-                                dBhelper.closeDB();
-                                Log.i("hreshtak", "task inserted");
-                            }
-                        }
-                        @Override
-                        public void onAnimationRepeat(Animation animation) { }
-                    });
-
-                    holder.itemView.startAnimation(anim);
-                }
             }
         });
     }
@@ -407,28 +361,23 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
         if(dBhelper.updateTask(edittedText,deal_id,tusk_number,disable)){
 
             taskList = dBhelper.getAllTasksByDealID(deal_id);
-            Collections.reverse(taskList);
-            dBhelper.closeDB();
-
             dealNameEditText.setText("");
-
+            dBhelper.closeDB();
         }
     }
 
-   // Remove a RecyclerView item containing a specified Deal object
+   //Remove task
    public void remove(int deal_id, int task_number) {
 
        if( dBhelper.deleteTask(deal_id, task_number)){
 
            taskList = dBhelper.getAllTasksByDealID(deal_id);
-           Collections.reverse(taskList);
+           task_row_index = -1;
+           notifyDataSetChanged();
 
-           notifyItemRemoved(task_row_index);
-           Log.i("hreshtak", "removed");
-   }else{
+       }else{
            Log.i("hreshtak", "not removed");
        }
-
            dBhelper.closeDB();
    }
 
@@ -440,16 +389,18 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
     public void hideKeyboard(){
 
         InputMethodManager imm2 = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm2.hideSoftInputFromWindow(dealNameEditText.getWindowToken(), 0);
-
-
+        if (imm2 != null) {
+            imm2.hideSoftInputFromWindow(dealNameEditText.getWindowToken(), 0);
+        }
     }
 
     public void showKeyboard(){
 
         dealNameEditText.requestFocus();
         InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
-        imm.showSoftInput(dealNameEditText, InputMethodManager.SHOW_IMPLICIT);
+        if (imm != null) {
+            imm.showSoftInput(dealNameEditText, InputMethodManager.SHOW_IMPLICIT);
+        }
     }
 
     private void animateBlueLayout(boolean hide){
@@ -471,11 +422,12 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
 
     public static class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
 
-        RelativeLayout taskLayout;
-        public static TextView taskName;
+        LinearLayout taskLayout;
+        TextView taskName;
+        RelativeLayout whiteBttnLayout;
+        RelativeLayout blueBttnLayout;
         ImageButton whiteButton;
         ImageButton blueButton;
-
         ItemClickListener itemClickListener;
 
 
@@ -488,9 +440,13 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
 
             taskLayout = itemView.findViewById(R.id.taskLayout);
             whiteButton = itemView.findViewById(R.id.whiteCircleButton);
+            whiteBttnLayout = itemView.findViewById(R.id.whiteBttnLayout);
+            blueBttnLayout = itemView.findViewById(R.id.blueBttnLayout);
             blueButton = itemView.findViewById(R.id.blueCircleButton);
             taskName = itemView.findViewById(R.id.taskNameTV);
 
+            whiteBttnLayout.setOnClickListener(this);
+            blueBttnLayout.setOnClickListener(this);
             whiteButton.setOnClickListener(this);
             blueButton.setOnClickListener(this);
             taskLayout.setOnClickListener(this);
@@ -503,15 +459,14 @@ public class TaskRecyclerViewAdapter extends RecyclerView.Adapter<TaskRecyclerVi
             if(task.getDisabled() == 1){
 
                 taskName.setTextColor(whiteButton.getContext().getResources().getColor(R.color.taskItemDisabledColor));
-                whiteButton.setVisibility(View.GONE);
+                whiteBttnLayout.setVisibility(View.GONE);
 
             }else{
                 taskName.setTextColor(whiteButton.getContext().getResources().getColor(R.color.taskItemColor));
-                whiteButton.setVisibility(View.VISIBLE);
+                whiteBttnLayout.setVisibility(View.VISIBLE);
 
             }
              taskName.setText(task.getTaskName());
-             Log.i("hreshtak","onTaskRecView onBind, adapter pos="+getAdapterPosition()+", deal_id="+task.getDeal_id());
         }
 
         @Override

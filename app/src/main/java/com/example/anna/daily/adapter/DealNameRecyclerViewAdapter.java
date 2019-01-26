@@ -1,7 +1,6 @@
 package com.example.anna.daily.adapter;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
+
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -37,7 +36,7 @@ import java.util.Collections;
 import java.util.List;
 import static com.example.anna.daily.MainActivity.base64Image;
 import static com.example.anna.daily.MainActivity.isInserting;
-import static com.example.anna.daily.MainActivity.mAdapter;
+import static com.example.anna.daily.adapter.TaskRecyclerViewAdapter.taskDealID;
 import static com.example.anna.daily.adapter.TaskRecyclerViewAdapter.task_row_index;
 public class DealNameRecyclerViewAdapter extends RecyclerView.Adapter<DealNameRecyclerViewAdapter.ViewHolder> {
 
@@ -66,7 +65,6 @@ public class DealNameRecyclerViewAdapter extends RecyclerView.Adapter<DealNameRe
 
     public static int deal_row_index = -5;
     public static DBhelper dBhelper;
-
     public static boolean taskCRUD = false;
 
 
@@ -75,7 +73,7 @@ public class DealNameRecyclerViewAdapter extends RecyclerView.Adapter<DealNameRe
 
         this.context = mContext;
         this.dealList = dealList;
-        this.dBhelper = new DBhelper(context);
+        dBhelper = new DBhelper(context);
     }
 
 
@@ -121,12 +119,7 @@ public class DealNameRecyclerViewAdapter extends RecyclerView.Adapter<DealNameRe
             if (dBhelper.getTasksCountByDealId(dealList.get(position).getId()) > 1) {
                 holder.expandTaskLayout(position, false);
                 Log.i("hreshtak", "close Task layout =" + position);
-                 /*    if(taskName != null){
-                        taskName.setMaxLines(1);
-                        taskName.setEllipsize(TextUtils.TruncateAt.END);
-                        Log.i("hreshtak", "taskName != null");
-                    }
-                    */
+
             }
         }
         //Always show 1 task
@@ -210,22 +203,17 @@ public class DealNameRecyclerViewAdapter extends RecyclerView.Adapter<DealNameRe
 
                 if (deal.getExpanded() == 1) {
                     //Always show 1 task
-                    Log.i("hreshtak", "deal.getExpanded() == 1"+deal);
 
                     holder.expandTaskLayout(position,false);
                     dBhelper.changeDealExpanded(deal_id,0);
-
                 }
                 else {
                     //Expand all tasks
-                    Log.i("hreshtak", "deal.getExpanded() == 0"+deal);
 
                     holder.expandTaskLayout(position,true);
                     dBhelper.changeDealExpanded(deal_id,1);
                 }
-
               }
-
             }
         });
 
@@ -239,7 +227,6 @@ public class DealNameRecyclerViewAdapter extends RecyclerView.Adapter<DealNameRe
                 bottomBlueLinLayout.setVisibility(View.GONE);
                 bottomWhiteLinLayout.setVisibility(View.VISIBLE);
                 showKeyboard();
-
 
                 String dealText = dealList.get(deal_row_index).getName();
 
@@ -283,8 +270,6 @@ public class DealNameRecyclerViewAdapter extends RecyclerView.Adapter<DealNameRe
                 addDealBttn.setVisibility(View.VISIBLE);
                 saveDealBttn.setVisibility(View.VISIBLE);
 
-               // holder.myRecyclerViewList.remove(dealList.get(deal_row_index).getId());
-
             }
         });
 
@@ -294,16 +279,17 @@ public class DealNameRecyclerViewAdapter extends RecyclerView.Adapter<DealNameRe
             @Override
             public void onClick(View v) {
 
-
                 hideKeyboard();
 
                 String edittedText;
+
                 //For checking if White Layout is opened or not, if not then do nothing
                 if (bottomWhiteLinLayout.getVisibility() == View.VISIBLE) {
 
                     bottomBlueLinLayout.setVisibility(View.GONE);
                     edittedText = dealNameEditText.getText().toString();
                     updateDeal(deal_row_index, edittedText);
+
                 }else{
                     animateBlueLayout(true);
                 }
@@ -325,15 +311,31 @@ public class DealNameRecyclerViewAdapter extends RecyclerView.Adapter<DealNameRe
             @Override
             public void onClick(View v) {
 
-                     hideKeyboard();
+                    hideKeyboard();
 
-                    holder.bindTask(deal_row_index, dealNameEditText.getText().toString());
-
-                    //make expanded true
+                    //Get deal_id at row_index
                     List<Deal> reversedList = dBhelper.getAllDeals();
                     Collections.reverse(reversedList);
-                    Deal deal = reversedList.get(deal_row_index);
-                    dBhelper.changeDealExpanded(deal.getId(),1);
+
+                    if(deal_row_index >= 0) {
+
+                        Deal deal = reversedList.get(deal_row_index);
+                        int deal_id = deal.getId();
+
+                        holder.bindTask(deal_id, dealNameEditText.getText().toString());
+
+                        //make expanded true
+                        dBhelper.changeDealExpanded(deal_id,1);
+                        Log.i("stugum", "deal_row_index >= 0");
+
+                    }else{
+
+                        holder.bindTask(taskDealID, dealNameEditText.getText().toString());
+                        Log.i("stugum", "deal_row_index < 0");
+
+                        //make expanded true
+                        dBhelper.changeDealExpanded(taskDealID,1);
+                    }
 
                     dealNameEditText.setText("");
                     addDealBttn.setVisibility(View.VISIBLE);
@@ -412,7 +414,7 @@ public class DealNameRecyclerViewAdapter extends RecyclerView.Adapter<DealNameRe
 
             }
         else
-            Toast.makeText(context, "Can not delete deal", Toast.LENGTH_SHORT).show();
+            Log.i("hreshtak","Can not delete deal");
     }
 
 
@@ -495,13 +497,11 @@ public class DealNameRecyclerViewAdapter extends RecyclerView.Adapter<DealNameRe
             taskList = dBhelper.getAllTasksByDealID(deal.getId());
             newTaskList = new ArrayList<>();
 
-
             for (int i = 0; i < taskList.size(); i++) {
 
                 if(taskList.get(i).getDisabled() == 0){
 
                     newTaskList.add(taskList.get(i));
-                    Log.i("hreshtak","onBind, disabled ");
                 }
             }
 
@@ -509,7 +509,6 @@ public class DealNameRecyclerViewAdapter extends RecyclerView.Adapter<DealNameRe
                 if (taskList.get(i).getDisabled() == 1) {
 
                     newTaskList.add(taskList.get(i));
-                    Log.i("hreshtak", "onBind, enabled ");
                 }
             }
 
@@ -519,42 +518,32 @@ public class DealNameRecyclerViewAdapter extends RecyclerView.Adapter<DealNameRe
 
         }
 
-        public void bindTask(int row_index, String taskName) {
+        public void bindTask(int deal_id, String taskName) {
 
-            //Check which recyclerView adapter will insert task(row_index=longClickedDealPosition)
-
-                //Get deal_id at row_index
-                List<Deal> reversedList = dBhelper.getAllDeals();
-                Collections.reverse(reversedList);
-
-                Deal deal = reversedList.get(row_index);
-                int deal_id = deal.getId();
-
+                //Check which recyclerView adapter will insert task
                 List<Task> taskList = dBhelper.getAllTasksByDealID(deal_id);
 
                 Task task = new Task();
                 task.setDeal_id(deal_id);
                 task.setTaskName(taskName);
+
                 if(taskList.size()>0 ){
-                    task.setTask_number(taskList.get(0).getTask_number()+1);
+                    task.setTask_number(taskList.get(taskList.size()-1).getTask_number()+1);
                 }else{
                     task.setTask_number(dBhelper.getTasksCountByDealId(deal_id));
                 }
-
                 task.setDisabled(0);
 
-                List<Task> reversedTaskList = dBhelper.getAllTasksByDealID(deal.getId());
-                //Collections.reverse(reversedTaskList);
 
                 if (dBhelper.insertTask(task)) {
 
                     //updateData
-                    taskAdapter = new TaskRecyclerViewAdapter(itemView.getContext(), reversedTaskList);
+                    taskList = dBhelper.getAllTasksByDealID(deal_id);
+                    taskAdapter = new TaskRecyclerViewAdapter(itemView.getContext(), taskList);
                     taskRecyclerView.setAdapter(taskAdapter);
 
                     taskAdapter.notifyItemInserted(0);
                     taskAdapter.notifyDataSetChanged();
-
 
                     Log.i("hreshtak", "success:bindTask");
                 }
@@ -577,7 +566,6 @@ public class DealNameRecyclerViewAdapter extends RecyclerView.Adapter<DealNameRe
                 if(taskList.get(i).getDisabled() == 0){
 
                     newTaskList.add(taskList.get(i));
-                    Log.i("hreshtak","onBind, disabled ");
                 }
             }
 
@@ -585,7 +573,6 @@ public class DealNameRecyclerViewAdapter extends RecyclerView.Adapter<DealNameRe
                 if (taskList.get(i).getDisabled() == 1) {
 
                     newTaskList.add(taskList.get(i));
-                    Log.i("hreshtak", "onBind, enabled ");
                 }
             }
 
@@ -598,9 +585,8 @@ public class DealNameRecyclerViewAdapter extends RecyclerView.Adapter<DealNameRe
                   for (int i = 0; i < taskList.size(); i++) {
 
                     int size = newTaskList.get(i).getTaskName().length() / 30;
-                    if ( newTaskList.get(i).getTaskName().length()>60) {
+                    if ( newTaskList.get(i).getTaskName().length()>30) {
                         height += (itemView.getContext().getResources().getDimensionPixelSize(R.dimen.task_change_size)*size);
-                        Log.i("hreshtak", " task Height>60,size= " + size);
                     }
               }
 
@@ -621,9 +607,9 @@ public class DealNameRecyclerViewAdapter extends RecyclerView.Adapter<DealNameRe
                 if(taskList.size() != 0){
 
                  int size = newTaskList.get(0).getTaskName().length() / 30;
-                    if ( newTaskList.get(0).getTaskName().length()>60) {
+                    if ( newTaskList.get(0).getTaskName().length()>30) {
                         params.height = itemView.getContext().getResources().getDimensionPixelSize(R.dimen.task_item_size) + (itemView.getContext().getResources().getDimensionPixelSize(R.dimen.task_change_size)*size);
-                        Log.i("hreshtak", " task Height>60,name= " + taskList.get(0).getTaskName());
+
                     }
                 }
 

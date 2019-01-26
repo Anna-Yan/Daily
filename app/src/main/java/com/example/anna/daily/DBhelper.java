@@ -177,6 +177,28 @@ public class DBhelper extends SQLiteOpenHelper {
         return list;
     }
 
+    /** GET ALL Deals **/
+    public Deal findDealByID(int id) {
+
+        Deal deal = new Deal();
+        db = getReadableDatabase();
+
+        String countQuery = "SELECT * FROM "+DEAL_TABLE+" WHERE "+DEAL_ID+"="+id;
+        db = getReadableDatabase();
+        Cursor cursor = db.rawQuery(countQuery, null);
+
+        while (cursor.moveToNext()) {
+            deal.setId(cursor.getInt(0));
+            deal.setName(cursor.getString(1));
+            deal.setImagePath(cursor.getString(2));
+            deal.setExpanded(cursor.getInt(3));
+        }
+
+        cursor.close();
+        Log.i("stugum", "findDealByID=" + deal.toString());
+        return deal;
+    }
+
     /** For searching %dealNAme% in DB and give DealLIst back **/
     public List<Deal> searchByDealName(String dealName){
 
@@ -311,7 +333,7 @@ public class DBhelper extends SQLiteOpenHelper {
     public List<Task> getAllTasksByDealID(int id) {
 
         List<Task> list = new ArrayList<>();
-        String query = "SELECT * FROM "+TASK_TABLE+" WHERE "+TASK_DEAL_ID+"= " +id +" ORDER BY "+TASK_NUMBER+" DESC";
+        String query = "SELECT * FROM "+TASK_TABLE+" WHERE "+TASK_DEAL_ID+"= " +id +" ORDER BY "+TASK_NUMBER;
         db = getReadableDatabase();
         Cursor cursor = db.rawQuery(query, null);
 

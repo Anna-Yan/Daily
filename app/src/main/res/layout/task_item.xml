@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/taskLayout"
     android:layout_width="match_parent"
@@ -11,43 +11,62 @@
         android:id="@+id/taskNameTV"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
-        android:layout_toLeftOf="@+id/circleBttnsLayout"
-        android:layout_toStartOf="@+id/circleBttnsLayout"
-        android:gravity="left|center"
-        android:paddingLeft="10dp"
-        android:text="task name here task name here task name here task name here task name here task name here"
+        android:layout_gravity="center"
+        android:layout_weight="1"
+        android:text="task name"
         android:textColor="@color/taskItemColor" />
 
     <RelativeLayout
-        android:id="@+id/circleBttnsLayout"
-        android:layout_width="50dp"
-        android:layout_height="20dp"
-        android:layout_alignParentRight="true"
-        android:layout_centerVertical="true"
-        android:layout_marginRight="10dp">
+        android:id="@+id/buttonsLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_weight="7"
+        android:gravity="center"
+        android:visibility="visible">
 
-        <ImageButton
-            android:id="@+id/blueCircleButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerHorizontal="true"
+        <RelativeLayout
+            android:id="@+id/blueBttnLayout"
+            android:layout_width="match_parent"
+            android:layout_height="20dp"
+            android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
-            android:background="@color/white"
-            app:srcCompat="@mipmap/blue_circle" />
+            android:layout_marginRight="10dp"
+            android:gravity="center">
 
-        <ImageButton
-            android:id="@+id/whiteCircleButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerHorizontal="true"
+            <ImageButton
+                android:id="@+id/blueCircleButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:layout_centerVertical="true"
+                android:background="@color/white"
+                app:srcCompat="@mipmap/blue_circle" />
+
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:id="@+id/whiteBttnLayout"
+            android:layout_width="match_parent"
+            android:layout_height="20dp"
+            android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
-            android:background="@color/white"
-            android:visibility="visible"
-            app:srcCompat="@mipmap/white_circle" />
+            android:layout_marginRight="10dp"
+            android:visibility="visible">
+
+
+            <ImageButton
+                android:id="@+id/whiteCircleButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:layout_centerVertical="true"
+                android:background="@color/white"
+                app:srcCompat="@mipmap/white_circle" />
+
+        </RelativeLayout>
 
     </RelativeLayout>
 
-</RelativeLayout>
+</LinearLayout>

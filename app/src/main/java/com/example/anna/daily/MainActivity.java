@@ -31,7 +31,6 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
@@ -104,8 +103,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         toolbar =  findViewById(R.id.mainToolbar);
         setSupportActionBar(toolbar);
-
-        //requestImagePermission();
 
         addDealBttn = findViewById(R.id.addDealButton);
         saveDealBttn = findViewById(R.id.saveDealButton);
@@ -279,6 +276,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     protected void onDestroy() {
+
         Log.i("hreshtak", "onDestroy, row index="+deal_row_index);
         deal_row_index = -5;
         super.onDestroy();
@@ -447,7 +445,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                     hideKeyboard();
                     Bitmap picture = (Bitmap) data.getExtras().get("data");
-                   // Uri imageUri = getImageUri(getApplicationContext(), picture);
 
                     //decode image and convert it to Base64 format
                     base64Image = imageToString(picture);
@@ -525,12 +522,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 }
 
 
-    private Uri getImageUri(Context context, Bitmap inImage) {
-        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-        inImage.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
-        String path = MediaStore.Images.Media.insertImage(context.getContentResolver(), inImage, "Title", null);
-        return Uri.parse(path);
-    }
 
     //This is for encoding image to Base64 String
     private String imageToString(Bitmap bitmap) {
@@ -549,8 +540,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Bitmap decodeImage(Uri uri) {
 
         // The new size we want to scale to
-        int reqHeight = 100;
-        int reqWidth = 100;
+        int reqHeight = 300;
+        int reqWidth = 300;
 
         // Decode image size
         BitmapFactory.Options options = new BitmapFactory.Options();
